@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "foreignKeys"
+}
+
+model User {
+  id           String       @id @default(uuid())
+  name         String
+  cpf          String       @unique
+  password     String
+  permissionId String
+  permission   Permission   @relation(fields: [permissionId], references: [id])
+  scheduling   Scheduling[] @relation("SchedulingToUser")
+
+  @@index([permissionId])
+}
+
+model Permission {
+  id   String @id @default(uuid())
+  type String
+  user User[]
+}
+
+model Room {
+  id                 String       @id @default(uuid())
+  name               String
+  maximumCapacity    String
+  availableEquipment String[]
+  location           String
+  equipmentId        Equipment[]  @relation("EquipmentToRoom")
+  scheduling         Scheduling[] @relation("RoomToScheduling")
+}
+
+model Equipment {
+  id   String @id @default(uuid())
+  name String
+  room Room[] @relation("EquipmentToRoom")
+}
+
+model Scheduling {
+  id         String   @id @default(uuid())
+  title      String
+  startDate  DateTime @db.Timestamp(6)
+  endDate    DateTime @db.Timestamp(6)
+  recurrence String
+  room       Room[]   @relation("RoomToScheduling")
+  user       User[]   @relation("SchedulingToUser")
+}
